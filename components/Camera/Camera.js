@@ -16,7 +16,8 @@ class CameraComponent extends Component {
 		this.state = {
 		    hasCameraPermission: null,
 		    type: Camera.Constants.Type.back,
-        loading: false
+        loading: false,
+        r: null
 		  }
 	}
 
@@ -57,13 +58,15 @@ class CameraComponent extends Component {
       return (
         <View style={{ 
         	flex: 1,
+          height: imageHeight,
+          width: imageWidth,
 		    flexDirection: 'column',
-		    backgroundColor: 'black'
          }}>
           <Camera ref={ref => {
               this.camera = ref;
             }} 
             type={this.state.type}
+            ratio= {'16:9'}
             style = {{
 	          	flex: 1,
               justifyContent: 'flex-end',
