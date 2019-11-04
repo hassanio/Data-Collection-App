@@ -8,6 +8,7 @@ import { ImageManipulator } from 'expo';
 
 const imageWidth = Dimensions.get('window').width;
 const imageHeight = Dimensions.get('window').height;
+const DESIRED_RATIO = "16:9";
 
 
 class CameraComponent extends Component {
@@ -20,6 +21,17 @@ class CameraComponent extends Component {
         r: null
 		  }
 	}
+
+  prepareRatio = async () => {
+        if (Platform.OS == 'android' && this.camera) {
+            console.log("here")
+            const ratios = await this.camera.getSupportedRatiosAsync();
+            const ratio = ratios.find((ratio) => ratio === DESIRED_RATIO) || ratios[ratios.length - 1];
+            console.log(ratio)
+             
+            this.setState({ r: ratio });
+        }
+    }
 
   async componentWillMount() {
     const { status } = await Permissions.askAsync(Permissions.CAMERA);
@@ -66,7 +78,8 @@ class CameraComponent extends Component {
               this.camera = ref;
             }} 
             type={this.state.type}
-            ratio= {'16:9'}
+            onCameraReady={this.prepareRatio}
+            ratio= {this.state.r}
             style = {{
 	          	flex: 1,
               justifyContent: 'flex-end',
