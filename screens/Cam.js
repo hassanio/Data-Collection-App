@@ -9,10 +9,9 @@ console.disableYellowBox = true
 class Cam extends Component {
 	render() {
 		return (
-				<CameraComponent navigation={this.props.navigation}/>
+				<CameraComponent/>
 			)
 	}
 }
-
 
 export default Cam

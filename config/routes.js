@@ -1,17 +1,13 @@
-import { createSwitchNavigator, createStackNavigator, createAppContainer } from 'react-navigation';
-import AuthNavigator from './authroutes'
-import MainNavigator from './MainNavigator'
-import AuthLoadingScreen from '../screens/AuthLoading'
+import { createStackNavigator } from 'react-navigation-stack';
+import { createAppContainer } from 'react-navigation'
+import Cam from '../screens/Cam'
 
 
-export default createAppContainer(createSwitchNavigator(
-  {
-    AuthLoading: AuthLoadingScreen,
-    Auth: AuthNavigator,
-    Main: MainNavigator,
-  },
-  {
-    initialRouteName: 'AuthLoading',
-  }
-));
+export default createAppContainer(createStackNavigator({
+  home: {
+		screen: Cam,
+        path:'login/:user',
+	},
+})
+)
 

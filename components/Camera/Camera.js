@@ -1,5 +1,6 @@
-import { Camera, Permissions } from 'expo';
-import React, { Component } from 'react'
+import { Camera } from 'expo-camera';
+import * as Permissions from 'expo-permissions';
+import React, { Component } from 'react';
 import { ActivityIndicator, Icon, Item, Dimensions, Platform, View, TextInput, TouchableOpacity, TouchableHighlight, Text, KeyboardAvoidingView } from 'react-native';
 import { Ionicons, MaterialCommunityIcons, SimpleLineIcons } from '@expo/vector-icons';
 import { ImageManipulator } from 'expo';
@@ -24,23 +25,22 @@ class CameraComponent extends Component {
     this.setState({ hasCameraPermission: status === 'granted' })
   }
 
-  async snapPhoto() {       
-    // console.log('Button Pressed');
-    if (this.camera) {
-      this.camera.stopRecording()
-      this.setState({ loading: true })
-      console.log('Taking photo');
-      const options = { quality: 0 };
-      const data = await this.camera.takePictureAsync(options)
-      const resizedPhoto = await ImageManipulator.manipulateAsync(data.uri, [
-        { resize: { width: 300, height: 400 }}
-      ])
+  async snapPhoto() {     
+    console.log('Button Pressed');
+    // if (this.camera) {
+    //   this.camera.stopRecording()
+    //   this.setState({ loading: true })
+    //   console.log('Taking photo');
+    //   const options = { quality: 0 };
+    //   const data = await this.camera.takePictureAsync(options)
+    //   const resizedPhoto = await ImageManipulator.manipulateAsync(data.uri, [
+    //     { resize: { width: 300, height: 400 }}
+    //   ])
 
-      this.setState({ loading: false })
-      const { routeName, key } = this.props.navigation.getParam('returnToRoute'); 
+    //   this.setState({ loading: false })
 
-      this.props.navigation.navigate(routeName,{image: resizedPhoto.uri})
-     }
+    //   // this.props.navigation.navigate(routeName,{image: resizedPhoto.uri})
+    //  }
     }
 
   render() {
@@ -67,9 +67,7 @@ class CameraComponent extends Component {
             style = {{
 	          	flex: 1,
               justifyContent: 'flex-end',
-              alignItems: 'center',
-              width: Dimensions.get('window').width,
-              height: Dimensions.get('window').height
+              alignItems: 'center'
           }}>
             <View style={{flex: 0, flexDirection: 'row', justifyContent: 'center',}} >
               <TouchableOpacity
