@@ -4,7 +4,7 @@ import React, { Component } from 'react';
 import { ActivityIndicator, Icon, Item, Dimensions, Platform, View, TextInput, TouchableOpacity, TouchableHighlight, Text, KeyboardAvoidingView } from 'react-native';
 import { Ionicons, MaterialCommunityIcons, SimpleLineIcons } from '@expo/vector-icons';
 import { ImageManipulator } from 'expo';
-
+const axios = require('axios')
 
 const imageWidth = Dimensions.get('window').width;
 const imageHeight = Dimensions.get('window').height;
@@ -40,20 +40,47 @@ class CameraComponent extends Component {
 
   async snapPhoto() {     
     console.log('Button Pressed');
-    // if (this.camera) {
-    //   this.camera.stopRecording()
-    //   this.setState({ loading: true })
-    //   console.log('Taking photo');
-    //   const options = { quality: 0 };
-    //   const data = await this.camera.takePictureAsync(options)
-    //   const resizedPhoto = await ImageManipulator.manipulateAsync(data.uri, [
-    //     { resize: { width: 300, height: 400 }}
-    //   ])
+    if (this.camera) {
+      this.camera.stopRecording()
+      this.setState({ loading: true })
+      console.log('Taking photo');
+      const data = await this.camera.takePictureAsync()
+      console.log(data.uri)
+      img_type = ((data.uri).split(".").pop())
+      if (img_type == "jpg") {
+        img_type = "jpeg"
+      }
+      const type_ = "image/" + img_type;
+      const name_ = "photo." + img_type;
 
-    //   this.setState({ loading: false })
+      console.log(name_)
+      console.log(type_)
+      console.log("-------------")
 
-    //   // this.props.navigation.navigate(routeName,{image: resizedPhoto.uri})
-    //  }
+      let formData = new FormData();
+      const photo = {
+        uri: data.uri,
+        type: type_,
+        name: name_
+      }
+
+      formData.append('image', photo)
+
+      console.log(formData)
+
+      const res = await axios.post('https://127.0.0.1:5000/', formData, {
+          headers: {
+            'content-type': `multipart/form-data`,
+          }
+      }).then(function () {
+        console.log('SUCCESS!!');
+      }).catch(function (err) {
+        console.log(err);
+      });
+
+      this.setState({ loading: false })
+
+     }
     }
 
   render() {
