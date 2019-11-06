@@ -8,6 +8,12 @@ export default createAppContainer(createStackNavigator({
 		screen: Cam,
         path:'login/:user',
 	},
-})
-)
+},
+	{
+	  headerMode: 'none',
+	  navigationOptions: {
+	    headerVisible: false,
+	  }
+	},
+))
 

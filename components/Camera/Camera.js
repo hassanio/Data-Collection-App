@@ -1,7 +1,7 @@
 import { Camera } from 'expo-camera';
 import * as Permissions from 'expo-permissions';
 import React, { Component } from 'react';
-import { ActivityIndicator, Icon, Item, Dimensions, Platform, View, TextInput, TouchableOpacity, TouchableHighlight, Text, KeyboardAvoidingView } from 'react-native';
+import { ActivityIndicator, Icon, Item, Dimensions, Platform, View, TextInput, TouchableOpacity, TouchableHighlight, Text, KeyboardAvoidingView, Image } from 'react-native';
 import { Ionicons, MaterialCommunityIcons, SimpleLineIcons } from '@expo/vector-icons';
 import { ImageManipulator } from 'expo';
 const axios = require('axios')
@@ -18,7 +18,9 @@ class CameraComponent extends Component {
 		    hasCameraPermission: null,
 		    type: Camera.Constants.Type.back,
         loading: false,
-        r: null
+        focus: Camera.Constants.AutoFocus.on,
+        r: null,
+        image: null,
 		  }
 	}
 
@@ -46,10 +48,9 @@ class CameraComponent extends Component {
       console.log('Taking photo');
       const data = await this.camera.takePictureAsync()
       console.log(data.uri)
+      this.setState({ image: data.uri})
       img_type = ((data.uri).split(".").pop())
-      if (img_type == "jpg") {
-        img_type = "jpeg"
-      }
+      img_type = "jpg"
       const type_ = "image/" + img_type;
       const name_ = "photo." + img_type;
 
@@ -57,7 +58,7 @@ class CameraComponent extends Component {
       console.log(type_)
       console.log("-------------")
 
-      let formData = new FormData();
+      const formData = new FormData();
       const photo = {
         uri: data.uri,
         type: type_,
@@ -65,20 +66,21 @@ class CameraComponent extends Component {
       }
 
       formData.append('image', photo)
-
+    
       console.log(formData)
 
-      const res = await axios.post('https://127.0.0.1:5000/', formData, {
+      const res = await axios.post('http://10.130.96.240:5000/', formData, {
           headers: {
             'content-type': `multipart/form-data`,
           }
-      }).then(function () {
-        console.log('SUCCESS!!');
+      }).then(function (response) {
+        console.log(response.data['score']);
       }).catch(function (err) {
         console.log(err);
       });
 
       this.setState({ loading: false })
+      this.setState({ image: null})
 
      }
     }
@@ -105,6 +107,7 @@ class CameraComponent extends Component {
               this.camera = ref;
             }} 
             type={this.state.type}
+            autoFocus={this.state.focus}
             onCameraReady={this.prepareRatio}
             ratio= {this.state.r}
             style = {{
@@ -134,17 +137,24 @@ class CameraComponent extends Component {
               </TouchableOpacity>
             </View>
           </Camera>
-          {this.state.loading && <View style = {{
+          {this.state.loading && this.state.image &&
+                              <View>
+                                <Image
+                                  style={{width: imageWidth, height: imageHeight}}
+                                  source={{uri: this.state.image}}
+                                />
+                                <View style = {{
                                   height: imageHeight,
                                   width: imageWidth,
                                   position: 'absolute',
                                   paddingLeft: 0,
                                   alignItems: 'center',
                                   justifyContent: 'center',
-                                  opacity: 0.6,
+                                  opacity: 0.8,
                                   backgroundColor: '#808080',
                                 }}>
-            <ActivityIndicator style= {{paddingBottom: imageHeight/4}} color='#316538' size='large'/>
+            <ActivityIndicator style= {{paddingBottom: imageHeight/5}} color='#316538' size='large'/>
+            </View>
           </View>}
         </View>
       );
