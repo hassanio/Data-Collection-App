@@ -3,9 +3,9 @@ import * as Permissions from 'expo-permissions';
 import React, { Component } from 'react';
 import { Button, ActivityIndicator, Icon, Item, Dimensions, Platform, View, TextInput, TouchableOpacity, TouchableHighlight, Text, KeyboardAvoidingView, Image } from 'react-native';
 import { Ionicons, MaterialCommunityIcons, SimpleLineIcons } from '@expo/vector-icons';
-import { ImageManipulator } from 'expo';
 const axios = require('axios')
 import * as ImagePicker from 'expo-image-picker';
+import * as ImageManipulator from 'expo-image-manipulator';
 
 const imageWidth = Dimensions.get('window').width;
 const imageHeight = Dimensions.get('window').height;
@@ -47,7 +47,7 @@ class CameraComponent extends Component {
 
     _pickImage = async () => {
       console.log("HERE")
-      let result = await ImagePicker.launchCameraAsync({})
+      let result = await ImagePicker.launchCameraAsync({quality: 0.5})
       if (!result.cancelled) {
         this.setState({ image: result.uri });
         console.log(this.state.image)
@@ -72,7 +72,7 @@ class CameraComponent extends Component {
       
         console.log(formData)
 
-        const res = await axios.post('http://10.130.96.240:5000/', formData, {
+        const res = await axios.post('https://soil-sproj.herokuapp.com/', formData, {
             headers: {
               'content-type': `multipart/form-data`,
             }
@@ -120,7 +120,7 @@ class CameraComponent extends Component {
                                   paddingLeft: 0,
                                   alignItems: 'center',
                                   justifyContent: 'center',
-                                  opacity: 0.7,
+                                  opacity: 0,
                                   backgroundColor: '#808080',
                                 }}>
             <ActivityIndicator style= {{alignSelf: 'center'}} color='#FFFFFF' size='large'/>
