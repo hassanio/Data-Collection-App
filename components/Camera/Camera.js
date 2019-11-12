@@ -1,11 +1,13 @@
 import { Camera } from 'expo-camera';
 import * as Permissions from 'expo-permissions';
 import React, { Component } from 'react';
-import { Button, ActivityIndicator, Icon, Item, Dimensions, Platform, View, TextInput, TouchableOpacity, TouchableHighlight, Text, KeyboardAvoidingView, Image } from 'react-native';
+import { Button, ActivityIndicator, Icon, Item, Dimensions, Platform, View, TextInput, TouchableOpacity, TouchableHighlight, Text, KeyboardAvoidingView, Image, ToastAndroid } from 'react-native';
 import { Ionicons, MaterialCommunityIcons, SimpleLineIcons } from '@expo/vector-icons';
 const axios = require('axios')
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
+import Constants from 'expo-constants';
+import * as Location from 'expo-location';
 
 const imageWidth = Dimensions.get('window').width;
 const imageHeight = Dimensions.get('window').height;
@@ -22,28 +24,50 @@ class CameraComponent extends Component {
         focus: Camera.Constants.AutoFocus.on,
         r: null,
         image: null,
+        location: null,
 		  }
 	}
 
-  prepareRatio = async () => {
-        if (Platform.OS == 'android' && this.camera) {
-            console.log("here")
-            const ratios = await this.camera.getSupportedRatiosAsync();
-            const ratio = ratios.find((ratio) => ratio === DESIRED_RATIO) || ratios[ratios.length - 1];
-            console.log(ratio)
-             
-            this.setState({ r: ratio });
-        }
+  async componentDidMount() {
+    console.log("IN LOCATION LORU")
+    if (Platform.OS === 'android' && !Constants.isDevice) {
+      console.log("ERROR")
+    } else {
+      this._getLocationAsync();
     }
 
+  }
+
   async componentWilllMount() {
+    console.log("IN LOCATION LORU")
     if (Constants.platform.ios) {
       const { status } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
       if (status !== 'granted') {
         alert('Sorry, we need camera roll permissions to make this work!');
       }
     }
+
+
+
+    if (Platform.OS === 'android' && !Constants.isDevice) {
+      console.log("ERROR")
+    } else {
+      this._getLocationAsync();
+    }
+
   }
+
+  _getLocationAsync = async () => {
+
+    let { status } = await Permissions.askAsync(Permissions.LOCATION);
+    if (status !== 'granted') {
+      console.log("ERROR")
+    }
+
+    let loc = await Location.getCurrentPositionAsync({});
+    this.setState({ location: loc });
+  };
+
 
     _pickImage = async () => {
       console.log("HERE")
@@ -51,6 +75,7 @@ class CameraComponent extends Component {
       if (!result.cancelled) {
         this.setState({ image: result.uri });
         console.log(this.state.image)
+        console.log(this.state.location)
 
         img_type = ((this.state.image).split(".").pop())
         img_type = "jpg"
@@ -120,9 +145,10 @@ class CameraComponent extends Component {
                                   paddingLeft: 0,
                                   alignItems: 'center',
                                   justifyContent: 'center',
-                                  opacity: 0,
+                                  opacity: 0.8,
                                   backgroundColor: '#808080',
                                 }}>
+                                <Text style = {{fontSize: 20, color: 'white', paddingBottom: imageHeight/40, fontWeight: 'bold'}}>Estimating Quality..</Text>
             <ActivityIndicator style= {{alignSelf: 'center'}} color='#FFFFFF' size='large'/>
             </View>
           </View>}
