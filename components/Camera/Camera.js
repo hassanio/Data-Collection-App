@@ -21,56 +21,46 @@ const DESIRED_RATIO = "16:9";
 
 
 class CameraComponent extends Component {
-	constructor(props) {
-		super(props)
-		this.state = {
-		    hasCameraPermission: null,
-		    type: Camera.Constants.Type.back,
+  constructor(props) {
+    super(props)
+    this.state = {
         loading: false,
-        focus: Camera.Constants.AutoFocus.on,
         r: null,
         image: null,
         location: null,
         firebaseUpload: false,
-		}
+        text: "",
+    }
 
-		if (!firebase.apps.length) { firebase.initializeApp(ApiKeys.FirebaseConfig) }
-	}
+    if (!firebase.apps.length) { firebase.initializeApp(ApiKeys.FirebaseConfig) }
+  }
 
   async componentDidMount() {
-    console.log("IN LOCATION LORU")
+    // console.log("IN LOCATION LORU")
     if (Platform.OS === 'android' && !Constants.isDevice) {
-      console.log("ERROR")
+        ToastAndroid.show("Permission Denied!")
     } else {
-      this._getLocationAsync();
+        this._getLocationAsync();
     }
 
   }
   
 
   async componentWilllMount() {
-    console.log("IN LOCATION LORU")
     if (Constants.platform.ios) {
       const { status } = await Permissions.askAsync(Permissions.CAMERA_ROLL)
       if (status !== 'granted') {
-        alert('Sorry, we need camera roll permissions to make this work!')
+          ToastAndroid.show("Permission Denied!")
       }
     }
-
-
-
-    if (Platform.OS === 'android' && !Constants.isDevice) {
-      console.log("ERROR")
-    } else {
-      this._getLocationAsync()
-    }
   }
+
 
   _getLocationAsync = async () => {
 
     let { status } = await Permissions.askAsync(Permissions.LOCATION)
     if (status !== 'granted') {
-      console.log("ERROR")
+      ToastAndroid.show("Permission Denied!")
     }
 
     let loc = await Location.getCurrentPositionAsync({})
@@ -78,33 +68,33 @@ class CameraComponent extends Component {
   }
 
   uploadImage = async (uri, imageName) => {
-	    const response = await fetch(uri)
-	    const blob = await response.blob()
+      const response = await fetch(uri)
+      const blob = await response.blob()
 
-	    var ref = firebase.storage().ref().child("images/" + imageName)
-	    return ref.put(blob)
-  	}
+      var ref = firebase.storage().ref().child("images/" + imageName)
+      return ref.put(blob)
+    }
 
 
     _pickImage = async () => {
-      console.log("HERE")
+      // console.log("HERE")
       let result = await ImagePicker.launchCameraAsync({quality: 1})
       if (!result.cancelled) {
-      	const resizedPhoto = await ImageManipulator.manipulateAsync(result.uri, [
-	        { resize: { width: 1000 }}
-	      ])
+        const resizedPhoto = await ImageManipulator.manipulateAsync(result.uri, [
+          { resize: { width: 1000 }}
+        ])
         this.setState({ image: resizedPhoto.uri })
-        console.log(this.state.image)
-        console.log(this.state.location)
+        // console.log(this.state.image)
+        // console.log(this.state.location)
 
         img_type = ((this.state.image).split(".").pop())
         img_type = "jpg"
         const type_ = "image/" + img_type;
         const name_ = "photo." + img_type;
 
-        console.log(name_)
-        console.log(type_)
-        console.log("-------------")
+        // console.log(name_)
+        // console.log(type_)
+        // console.log("-------------")
 
         const formData = new FormData();
         const photo = {
@@ -114,36 +104,32 @@ class CameraComponent extends Component {
         }
 
         formData.append('image', photo)
+
+        this.setState({ text: "Estimating Quality.."})
       
         console.log(formData)
-
-
-   //      this.uploadImage(result.uri, "test-image")
-   //      .then(() => {
-   //        Alert.alert("Success");
-   //        this.setState({firebaseUpload: true})
-   //      })
-   //      .catch((error) => {
-			// Alert.alert('Error:', error.message)
-			// console.log(error.message)
-   //      });
 
 
         const res = await axios.post('https://soil-sproj.herokuapp.com/', formData, {
             headers: {
               'content-type': `multipart/form-data`,
             }
-        }).then(function (response) {
-		   //     	this.uploadImage(result.uri, "test-image")
-		   //      .then(() => {
-		   //        Alert.alert("Success");
-		   //        this.setState({firebaseUpload: true})
-		   //      })
-		   //      .catch((error) => {
-					// Alert.alert('Error:', error.message)
-					// console.log(error.message)
-		   //      });
-          console.log(response.data['score']);
+        }).then((response) => {
+            this.setState({ text: "Uploading Image.."})
+            ToastAndroid.show(String(response.data['score']), ToastAndroid.LONG)
+            // console.log(this.state.text)
+            let lat = String(this.state.location["coords"]["latitude"])
+            let long = String(this.state.location["coords"]["longitude"])
+
+            this.uploadImage(this.state.image, lat + "_" + long)
+            .then(() => {
+              // ToastAndroid.show("Upload Successful!", ToastAndroid.LONG)
+              this.setState({firebaseUpload: true})
+            })
+            .catch((error) => {
+              ToastAndroid.show(error.message)
+              // console.log(error.message)
+            });
         }).catch(function (err) {
           console.log(err);
         });
@@ -151,7 +137,7 @@ class CameraComponent extends Component {
         this.setState({ loading: false })
         this.setState({ image: null })
 
-        this._pickImage()
+        // this._pickImage()
         
       }
     }
@@ -183,16 +169,16 @@ class CameraComponent extends Component {
                                   source={{uri: this.state.image}}
                                 />
                                 <View style = {{
-                                  height: imageWidth,
+                                  height: imageHeight,
                                   width: imageWidth,
                                   position: 'absolute',
                                   paddingLeft: 0,
                                   alignItems: 'center',
                                   justifyContent: 'center',
-                                  opacity: 0,
+                                  opacity: 0.8,
                                   backgroundColor: '#808080',
                                 }}>
-                                <Text style = {{fontSize: 20, color: 'white', paddingBottom: imageHeight/40, fontWeight: 'bold'}}>Estimating Quality..</Text>
+                                <Text style = {{fontSize: 20, color: 'white', paddingBottom: imageHeight/40, fontWeight: 'bold'}}>{this.state.text}</Text>
             <ActivityIndicator style= {{alignSelf: 'center'}} color='#FFFFFF' size='large'/>
             </View>
           </View>}
