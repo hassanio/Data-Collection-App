@@ -34,7 +34,7 @@ class CameraComponent extends Component {
         firebaseUpload: false,
 		}
 
-		if (!firebase.apps.length) { firebase.initializeApp(ApiKeys.FirebaseConfig) };
+		if (!firebase.apps.length) { firebase.initializeApp(ApiKeys.FirebaseConfig) }
 	}
 
   async componentDidMount() {
@@ -51,9 +51,9 @@ class CameraComponent extends Component {
   async componentWilllMount() {
     console.log("IN LOCATION LORU")
     if (Constants.platform.ios) {
-      const { status } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
+      const { status } = await Permissions.askAsync(Permissions.CAMERA_ROLL)
       if (status !== 'granted') {
-        alert('Sorry, we need camera roll permissions to make this work!');
+        alert('Sorry, we need camera roll permissions to make this work!')
       }
     }
 
@@ -62,28 +62,27 @@ class CameraComponent extends Component {
     if (Platform.OS === 'android' && !Constants.isDevice) {
       console.log("ERROR")
     } else {
-      this._getLocationAsync();
+      this._getLocationAsync()
     }
-
   }
 
   _getLocationAsync = async () => {
 
-    let { status } = await Permissions.askAsync(Permissions.LOCATION);
+    let { status } = await Permissions.askAsync(Permissions.LOCATION)
     if (status !== 'granted') {
       console.log("ERROR")
     }
 
-    let loc = await Location.getCurrentPositionAsync({});
-    this.setState({ location: loc });
-  };
+    let loc = await Location.getCurrentPositionAsync({})
+    this.setState({ location: loc })
+  }
 
   uploadImage = async (uri, imageName) => {
-	    const response = await fetch(uri);
-	    const blob = await response.blob();
+	    const response = await fetch(uri)
+	    const blob = await response.blob()
 
-	    var ref = firebase.storage().ref().child("images/" + imageName);
-	    return ref.put(blob);
+	    var ref = firebase.storage().ref().child("images/" + imageName)
+	    return ref.put(blob)
   	}
 
 
@@ -94,7 +93,7 @@ class CameraComponent extends Component {
       	const resizedPhoto = await ImageManipulator.manipulateAsync(result.uri, [
 	        { resize: { width: 1000 }}
 	      ])
-        this.setState({ image: resizedPhoto.uri });
+        this.setState({ image: resizedPhoto.uri })
         console.log(this.state.image)
         console.log(this.state.location)
 
@@ -119,31 +118,24 @@ class CameraComponent extends Component {
         console.log(formData)
 
 
-   //      this.uploadImage(result.uri, "test-image")
-   //      .then(() => {
-   //        Alert.alert("Success");
-   //        this.setState({firebaseUpload: true})
-   //      })
-   //      .catch((error) => {
-			// Alert.alert('Error:', error.message)
-			// console.log(error.message)
-   //      });
-
-
         const res = await axios.post('https://soil-sproj.herokuapp.com/', formData, {
             headers: {
               'content-type': `multipart/form-data`,
             }
-        }).then(function (response) {
-		   //     	this.uploadImage(result.uri, "test-image")
-		   //      .then(() => {
-		   //        Alert.alert("Success");
-		   //        this.setState({firebaseUpload: true})
-		   //      })
-		   //      .catch((error) => {
-					// Alert.alert('Error:', error.message)
-					// console.log(error.message)
-		   //      });
+        }).then((response) => {
+        		// console.log(this.state.location)
+        		let lat = String(this.state.location["coords"]["latitude"])
+        		let long = String(this.state.location["coords"]["longitude"])
+
+		       	this.uploadImage(this.state.image, lat + "_" + long)
+		        .then(() => {
+		          Alert.alert("Success");
+		          this.setState({firebaseUpload: true})
+		        })
+		        .catch((error) => {
+					Alert.alert('Error:', error.message)
+					console.log(error.message)
+		        });
           console.log(response.data['score']);
         }).catch(function (err) {
           console.log(err);
@@ -190,7 +182,7 @@ class CameraComponent extends Component {
                                   paddingLeft: 0,
                                   alignItems: 'center',
                                   justifyContent: 'center',
-                                  opacity: 0,
+                                  opacity: 0.8,
                                   backgroundColor: '#808080',
                                 }}>
                                 <Text style = {{fontSize: 20, color: 'white', paddingBottom: imageHeight/40, fontWeight: 'bold'}}>Estimating Quality..</Text>
