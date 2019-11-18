@@ -1,7 +1,7 @@
 import { Camera } from 'expo-camera';
 import * as Permissions from 'expo-permissions';
 import React, { Component } from 'react';
-import { Button, ActivityIndicator, Icon, Item, Dimensions, Platform, View, TextInput, TouchableOpacity, TouchableHighlight, Text, KeyboardAvoidingView, Image, ToastAndroid } from 'react-native';
+import { Button, ActivityIndicator, Icon, Item, Dimensions, Platform, View, TextInput, TouchableOpacity, TouchableHighlight, Text, KeyboardAvoidingView, Image, ToastAndroid, Alert } from 'react-native';
 import { Ionicons, MaterialCommunityIcons, SimpleLineIcons } from '@expo/vector-icons';
 const axios = require('axios')
 import * as ImagePicker from 'expo-image-picker';
@@ -9,9 +9,15 @@ import * as ImageManipulator from 'expo-image-manipulator';
 import Constants from 'expo-constants';
 import * as Location from 'expo-location';
 
+import * as firebase from 'firebase';
+import ApiKeys from './ApiKeys';
+// import { ImagePicker } from 'expo';
+
+
 const imageWidth = Dimensions.get('window').width;
 const imageHeight = Dimensions.get('window').height;
 const DESIRED_RATIO = "16:9";
+
 
 
 class CameraComponent extends Component {
@@ -25,7 +31,10 @@ class CameraComponent extends Component {
         r: null,
         image: null,
         location: null,
-		  }
+        firebaseUpload: false,
+		}
+
+		if (!firebase.apps.length) { firebase.initializeApp(ApiKeys.FirebaseConfig) }
 	}
 
   async componentDidMount() {
@@ -37,13 +46,14 @@ class CameraComponent extends Component {
     }
 
   }
+  
 
   async componentWilllMount() {
     console.log("IN LOCATION LORU")
     if (Constants.platform.ios) {
-      const { status } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
+      const { status } = await Permissions.askAsync(Permissions.CAMERA_ROLL)
       if (status !== 'granted') {
-        alert('Sorry, we need camera roll permissions to make this work!');
+        alert('Sorry, we need camera roll permissions to make this work!')
       }
     }
 
@@ -52,28 +62,38 @@ class CameraComponent extends Component {
     if (Platform.OS === 'android' && !Constants.isDevice) {
       console.log("ERROR")
     } else {
-      this._getLocationAsync();
+      this._getLocationAsync()
     }
-
   }
 
   _getLocationAsync = async () => {
 
-    let { status } = await Permissions.askAsync(Permissions.LOCATION);
+    let { status } = await Permissions.askAsync(Permissions.LOCATION)
     if (status !== 'granted') {
       console.log("ERROR")
     }
 
-    let loc = await Location.getCurrentPositionAsync({});
-    this.setState({ location: loc });
-  };
+    let loc = await Location.getCurrentPositionAsync({})
+    this.setState({ location: loc })
+  }
+
+  uploadImage = async (uri, imageName) => {
+	    const response = await fetch(uri)
+	    const blob = await response.blob()
+
+	    var ref = firebase.storage().ref().child("images/" + imageName)
+	    return ref.put(blob)
+  	}
 
 
     _pickImage = async () => {
       console.log("HERE")
-      let result = await ImagePicker.launchCameraAsync({quality: 0.5})
+      let result = await ImagePicker.launchCameraAsync({quality: 1})
       if (!result.cancelled) {
-        this.setState({ image: result.uri });
+      	const resizedPhoto = await ImageManipulator.manipulateAsync(result.uri, [
+	        { resize: { width: 1000 }}
+	      ])
+        this.setState({ image: resizedPhoto.uri })
         console.log(this.state.image)
         console.log(this.state.location)
 
@@ -97,11 +117,32 @@ class CameraComponent extends Component {
       
         console.log(formData)
 
+
+   //      this.uploadImage(result.uri, "test-image")
+   //      .then(() => {
+   //        Alert.alert("Success");
+   //        this.setState({firebaseUpload: true})
+   //      })
+   //      .catch((error) => {
+			// Alert.alert('Error:', error.message)
+			// console.log(error.message)
+   //      });
+
+
         const res = await axios.post('https://soil-sproj.herokuapp.com/', formData, {
             headers: {
               'content-type': `multipart/form-data`,
             }
         }).then(function (response) {
+		   //     	this.uploadImage(result.uri, "test-image")
+		   //      .then(() => {
+		   //        Alert.alert("Success");
+		   //        this.setState({firebaseUpload: true})
+		   //      })
+		   //      .catch((error) => {
+					// Alert.alert('Error:', error.message)
+					// console.log(error.message)
+		   //      });
           console.log(response.data['score']);
         }).catch(function (err) {
           console.log(err);
@@ -114,6 +155,9 @@ class CameraComponent extends Component {
         
       }
     }
+
+
+
 
   render() {
 
@@ -139,13 +183,13 @@ class CameraComponent extends Component {
                                   source={{uri: this.state.image}}
                                 />
                                 <View style = {{
-                                  height: imageHeight,
+                                  height: imageWidth,
                                   width: imageWidth,
                                   position: 'absolute',
                                   paddingLeft: 0,
                                   alignItems: 'center',
                                   justifyContent: 'center',
-                                  opacity: 0.8,
+                                  opacity: 0,
                                   backgroundColor: '#808080',
                                 }}>
                                 <Text style = {{fontSize: 20, color: 'white', paddingBottom: imageHeight/40, fontWeight: 'bold'}}>Estimating Quality..</Text>
