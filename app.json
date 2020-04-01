@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "Soil Sample",
+    "slug": "SoilSample",
+    "privacy": "public",
+    "sdkVersion": "35.0.0",
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/soil.png",
+    "splash": {
+      "image": "./assets/soil.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.Sproj.SoilSample"
+    }
+  }
+}
